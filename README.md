@@ -58,7 +58,7 @@ npm install
 
 Create a `.env` file in the project root:
 
-```
+```env
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
@@ -68,18 +68,18 @@ OPENAI_API_KEY=your_openai_api_key_here
 npm run dev
 ```
 
-Open: http://localhost:3000
+Open: <http://localhost:3000>
 
 ## 🚀 Deployment (Vercel)
 
 1. Push your project to GitHub.
-2. Go to https://vercel.com → “Add New Project” → Import this repo.
+2. Go to <https://vercel.com> → “Add New Project” → Import this repo.
 3. Add environment variable:
    - `OPENAI_API_KEY = your_openai_api_key_here`
 4. Click Deploy 🎉
 
 Your app will be live at:
-https://ai-career-assistant.vercel.app
+<https://ai-career-assistant.vercel.app>
 
 ---
 
