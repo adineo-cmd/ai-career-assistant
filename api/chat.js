@@ -1,7 +1,4 @@
 import Groq from "groq-sdk";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-dotenv.config();
 
 async function tryGroq(message) {
   const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -11,10 +8,11 @@ async function tryGroq(message) {
       model: "llama-3.1-8b-instant",
       messages: [
         { role: "system", content: "You are an AI Career Assistant." },
-        { role: "user", content: message }
+        { role: "user", content: message },
       ],
     });
-    return completion.choices[0].message.content;
+
+    return completion.choices?.[0]?.message?.content || null;
   } catch (err) {
     console.log("Groq failed:", err.message);
     return null;
@@ -28,14 +26,15 @@ async function tryHuggingFace(message) {
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${process.env.HF_API_KEY}`,
+          Authorization: `Bearer ${process.env.HF_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ inputs: message }),
       }
     );
+
     const data = await response.json();
-    return data.generated_text || data[0]?.generated_text || null;
+    return data.generated_text || data?.[0]?.generated_text || null;
   } catch (err) {
     console.log("HuggingFace failed:", err.message);
     return null;
@@ -50,18 +49,12 @@ async function tryOllama(message) {
       body: JSON.stringify({
         model: "llama3",
         prompt: message,
+        stream: false,
       }),
     });
 
-    const reader = response.body.getReader();
-    let text = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      text += new TextDecoder().decode(value);
-    }
-
-    return text;
+    const data = await response.json();
+    return data.response || null;
   } catch (err) {
     console.log("Ollama Offline:", err.message);
     return null;
@@ -74,7 +67,9 @@ export default async function handler(req, res) {
   }
 
   const { message } = req.body;
-  if (!message) return res.status(400).json({ error: "Message Required!" });
+  if (!message) {
+    return res.status(400).json({ error: "Message Required!" });
+  }
 
   let reply;
 
@@ -82,7 +77,9 @@ export default async function handler(req, res) {
   if (!reply) reply = await tryHuggingFace(message);
   if (!reply) reply = await tryOllama(message);
 
-  if (!reply) return res.status(500).json({ error: "All Providers Failed!" });
+  if (!reply) {
+    return res.status(500).json({ error: "All AI Providers Failed!" });
+  }
 
   return res.status(200).json({ reply });
 }
